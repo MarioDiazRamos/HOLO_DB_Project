@@ -4,24 +4,21 @@
 --     DIVISION DE INGENIERIAS
 --         MARIO DÍAZ RAMOS
 
--- Base de datos para la empresa de tecnología 
--- HOLO-FANS VENTILADORES POV 3D  
-
 -- Crear la base de datos
-CREATE DATABASE HOLO_DB;
+CREATE DATABASE IF NOT EXISTS HOLO_DB;
 USE HOLO_DB;
 
--- Tabla de Clientes
-CREATE TABLE Clientes (
-    ClienteID INT AUTO_INCREMENT PRIMARY KEY,
+-- Crear tablas en orden correcto
+
+-- Tabla de Departamentos (referenciada por Empleados y Maquinas)
+CREATE TABLE IF NOT EXISTS Departamentos (
+    DepartamentoID INT AUTO_INCREMENT PRIMARY KEY,
     Nombre VARCHAR(100),
-    Direccion VARCHAR(255),
-    Telefono VARCHAR(20),
-    Email VARCHAR(100)
+    Descripcion ENUM('Producción', 'Ventas', 'Marketing', 'I+D', 'Recursos Humanos', 'Soporte Técnico', 'Finanzas', 'Logística', 'Seguridad')
 );
 
 -- Tabla de Proveedores
-CREATE TABLE Proveedores (
+CREATE TABLE IF NOT EXISTS Proveedores (
     ProveedorID INT AUTO_INCREMENT PRIMARY KEY,
     Nombre VARCHAR(100),
     Direccion VARCHAR(255),
@@ -29,8 +26,17 @@ CREATE TABLE Proveedores (
     Email VARCHAR(100)
 );
 
--- Tabla de Empleados
-CREATE TABLE Empleados (
+-- Tabla de Clientes
+CREATE TABLE IF NOT EXISTS Clientes (
+    ClienteID INT AUTO_INCREMENT PRIMARY KEY,
+    Nombre VARCHAR(100),
+    Direccion VARCHAR(255),
+    Telefono VARCHAR(20),
+    Email VARCHAR(100)
+);
+
+-- Tabla de Empleados (depende de Departamentos)
+CREATE TABLE IF NOT EXISTS Empleados (
     EmpleadoID INT AUTO_INCREMENT PRIMARY KEY,
     Nombre VARCHAR(100),
     Puesto ENUM('Ingeniero', 'Técnico', 'Gerente', 'Vendedor', 'Operario'),
@@ -40,15 +46,8 @@ CREATE TABLE Empleados (
     FOREIGN KEY (DepartamentoID) REFERENCES Departamentos(DepartamentoID)
 );
 
--- Tabla de Departamentos
-CREATE TABLE Departamentos (
-    DepartamentoID INT AUTO_INCREMENT PRIMARY KEY,
-    Nombre VARCHAR(100),
-    Descripcion ENUM('Producción', 'Ventas', 'Marketing', 'I+D', 'Recursos Humanos', 'Soporte Técnico', 'Finanzas', 'Logística', 'Seguridad')
-);
-
--- Tabla de Productos
-CREATE TABLE Productos (
+-- Tabla de Productos (depende de Proveedores)
+CREATE TABLE IF NOT EXISTS Productos (
     ProductoID INT AUTO_INCREMENT PRIMARY KEY,
     Nombre VARCHAR(100),
     Categoria ENUM('Ventilador 3D', 'Accesorios', 'Refacciones'),
@@ -58,8 +57,18 @@ CREATE TABLE Productos (
     FOREIGN KEY (ProveedorID) REFERENCES Proveedores(ProveedorID)
 );
 
--- Tabla de Proyectos
-CREATE TABLE Proyectos (
+-- Tabla de Maquinas (depende de Departamentos)
+CREATE TABLE IF NOT EXISTS Maquinas (
+    MaquinaID INT AUTO_INCREMENT PRIMARY KEY,
+    Nombre VARCHAR(100),
+    Tipo ENUM('CNC', 'Impresora 3D', 'Torno', 'Fresadora'),
+    FechaCompra DATE,
+    DepartamentoID INT,
+    FOREIGN KEY (DepartamentoID) REFERENCES Departamentos(DepartamentoID)
+);
+
+-- Tabla de Proyectos (depende de Departamentos)
+CREATE TABLE IF NOT EXISTS Proyectos (
     ProyectoID INT AUTO_INCREMENT PRIMARY KEY,
     Nombre VARCHAR(100),
     Tipo ENUM('Desarrollo', 'Investigación', 'Mejora Continua'),
@@ -70,8 +79,8 @@ CREATE TABLE Proyectos (
     FOREIGN KEY (DepartamentoID) REFERENCES Departamentos(DepartamentoID)
 );
 
--- Tabla de Ventas
-CREATE TABLE Ventas (
+-- Tabla de Ventas (depende de Clientes y Empleados)
+CREATE TABLE IF NOT EXISTS Ventas (
     VentaID INT AUTO_INCREMENT PRIMARY KEY,
     Fecha DATE,
     ClienteID INT,
@@ -81,8 +90,8 @@ CREATE TABLE Ventas (
     FOREIGN KEY (EmpleadoID) REFERENCES Empleados(EmpleadoID)
 );
 
--- Tabla de DetalleVentas
-CREATE TABLE DetalleVentas (
+-- Tabla de DetalleVentas (depende de Ventas y Productos)
+CREATE TABLE IF NOT EXISTS DetalleVentas (
     DetalleID INT AUTO_INCREMENT PRIMARY KEY,
     VentaID INT,
     ProductoID INT,
@@ -92,8 +101,8 @@ CREATE TABLE DetalleVentas (
     FOREIGN KEY (ProductoID) REFERENCES Productos(ProductoID)
 );
 
--- Tabla de Compras
-CREATE TABLE Compras (
+-- Tabla de Compras (depende de Proveedores)
+CREATE TABLE IF NOT EXISTS Compras (
     CompraID INT AUTO_INCREMENT PRIMARY KEY,
     Fecha DATE,
     ProveedorID INT,
@@ -101,8 +110,8 @@ CREATE TABLE Compras (
     FOREIGN KEY (ProveedorID) REFERENCES Proveedores(ProveedorID)
 );
 
--- Tabla de DetalleCompras
-CREATE TABLE DetalleCompras (
+-- Tabla de DetalleCompras (depende de Compras y Productos)
+CREATE TABLE IF NOT EXISTS DetalleCompras (
     DetalleID INT AUTO_INCREMENT PRIMARY KEY,
     CompraID INT,
     ProductoID INT,
@@ -112,8 +121,8 @@ CREATE TABLE DetalleCompras (
     FOREIGN KEY (ProductoID) REFERENCES Productos(ProductoID)
 );
 
--- Tabla de Inventario
-CREATE TABLE Inventario (
+-- Tabla de Inventario (depende de Productos)
+CREATE TABLE IF NOT EXISTS Inventario (
     InventarioID INT AUTO_INCREMENT PRIMARY KEY,
     ProductoID INT,
     StockActual INT,
@@ -121,8 +130,8 @@ CREATE TABLE Inventario (
     FOREIGN KEY (ProductoID) REFERENCES Productos(ProductoID)
 );
 
--- Tabla de Mantenimiento
-CREATE TABLE Mantenimiento (
+-- Tabla de Mantenimiento (depende de Maquinas y Empleados)
+CREATE TABLE IF NOT EXISTS Mantenimiento (
     MantenimientoID INT AUTO_INCREMENT PRIMARY KEY,
     MaquinaID INT,
     Fecha DATE,
@@ -132,18 +141,8 @@ CREATE TABLE Mantenimiento (
     FOREIGN KEY (EmpleadoID) REFERENCES Empleados(EmpleadoID)
 );
 
--- Tabla de Maquinas
-CREATE TABLE Maquinas (
-    MaquinaID INT AUTO_INCREMENT PRIMARY KEY,
-    Nombre VARCHAR(100),
-    Tipo ENUM('CNC', 'Impresora 3D', 'Torno', 'Fresadora'),
-    FechaCompra DATE,
-    DepartamentoID INT,
-    FOREIGN KEY (DepartamentoID) REFERENCES Departamentos(DepartamentoID)
-);
-
--- Tabla de Soporte Técnico
-CREATE TABLE SoporteTecnico (
+-- Tabla de Soporte Técnico (depende de Clientes y Empleados)
+CREATE TABLE IF NOT EXISTS SoporteTecnico (
     TicketID INT AUTO_INCREMENT PRIMARY KEY,
     ClienteID INT,
     EmpleadoID INT,
@@ -155,8 +154,8 @@ CREATE TABLE SoporteTecnico (
     FOREIGN KEY (EmpleadoID) REFERENCES Empleados(EmpleadoID)
 );
 
--- Tabla de Control de Calidad
-CREATE TABLE ControlCalidad (
+-- Tabla de Control de Calidad (depende de Productos y Empleados)
+CREATE TABLE IF NOT EXISTS ControlCalidad (
     ControlID INT AUTO_INCREMENT PRIMARY KEY,
     ProductoID INT,
     FechaInspeccion DATE,
@@ -166,8 +165,8 @@ CREATE TABLE ControlCalidad (
     FOREIGN KEY (EmpleadoID) REFERENCES Empleados(EmpleadoID)
 );
 
--- Tabla de Seguridad
-CREATE TABLE Seguridad (
+-- Tabla de Seguridad (depende de Empleados)
+CREATE TABLE IF NOT EXISTS Seguridad (
     EventoID INT AUTO_INCREMENT PRIMARY KEY,
     Fecha DATE,
     Tipo ENUM('Incidente', 'Accidente'),
@@ -177,7 +176,7 @@ CREATE TABLE Seguridad (
 );
 
 -- Tabla de Finanzas
-CREATE TABLE Finanzas (
+CREATE TABLE IF NOT EXISTS Finanzas (
     TransaccionID INT AUTO_INCREMENT PRIMARY KEY,
     Fecha DATE,
     Monto DECIMAL(10,2),
@@ -186,7 +185,7 @@ CREATE TABLE Finanzas (
 );
 
 -- Tabla de Capacitaciones
-CREATE TABLE Capacitaciones (
+CREATE TABLE IF NOT EXISTS Capacitaciones (
     CapacitacionID INT AUTO_INCREMENT PRIMARY KEY,
     Nombre VARCHAR(100),
     Tipo ENUM('Inducción', 'Actualización', 'Especialización'),
@@ -194,8 +193,8 @@ CREATE TABLE Capacitaciones (
     FechaFin DATE
 );
 
--- Tabla de Logística
-CREATE TABLE Logistica (
+-- Tabla de Logística (depende de Ventas)
+CREATE TABLE IF NOT EXISTS Logistica (
     EnvioID INT AUTO_INCREMENT PRIMARY KEY,
     VentaID INT,
     FechaEnvio DATE,
