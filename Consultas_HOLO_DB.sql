@@ -77,6 +77,4 @@ UPDATE SoporteTecnico
 SET Estado = 'Cerrado', FechaCierre = CURDATE()
 WHERE TicketID = 2;
 
--- 15. Eliminar registros antiguos de logística (más de 1 año)
-DELETE FROM Logistica
-WHERE FechaEnvio < DATE_SUB(CURDATE(), INTERVAL 1 YEAR);
+
